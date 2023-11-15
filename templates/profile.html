@@ -1,0 +1,50 @@
+<!-- templates/my_profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello, {{ username }} - My Profile</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom styles here -->
+    <style>
+        body {
+            background-color: #FF9800; /* Orange */
+            color: #673AB7; /* Deep Purple */
+        }
+        /* Add more styles as needed */
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Hello, {{ username }}</h1>
+        <p>Set your monthly spending limit:</p>
+        <form method="post" action="/profile">
+            <input type="number" name="limit" step="0.01" placeholder="Enter your limit">
+            <button type="submit">Set Limit</button>
+        </form>
+<!-- my_profile.html -->
+
+<!-- ... (previous code) -->
+
+        {% if user.spending_limit is defined %}
+            <p>Your spending limit is set to ${{ user.spending_limit }}.</p>
+            {% if user.spending_limit is not none %}
+                {% if total_expenses > user.spending_limit %}
+                    <p style="color: red;">You have overspent this month. Consider adjusting your expenses.</p>
+                {% elif total_expenses == user.spending_limit %}
+                    <p>Your spending is exactly at the limit. Be mindful of future expenses.</p>
+                {% else %}
+                    <p style="color: green;">You are within your spending limit. Great job!</p>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+<!-- ... (remaining code) -->
+
+        <br>
+        <a href="/tracker" class="btn btn-primary">See All Details</a>
+        <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+</body>
+</html>
