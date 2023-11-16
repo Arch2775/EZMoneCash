@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZMONECASH - Expense Tracker</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #E91E63;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+            align-items: left;
+            justify-content: left;
+            height: 100vh;
+        }
+        h1 {
+            color: #673AB7;
+        }
+        h2 {
+            color: #FF9800;
+        }
+        form {
+            background-color: #6200EA;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        table {
+            width: 80%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            background-color: #4CAF50;
+        }
+        th, td {
+            border: 1px solid #FFFFFF;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #FF9800;
+            color: #FFFFFF;
+        }
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 10%;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #FF9800;
+            color: #FFFFFF;
+            cursor: pointer;
+            border: none;
+            padding: 8px;
+            width: 10%;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        textarea {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 10%;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        canvas {
+            max-width: 80%;
+            background-color: #FFFFFF;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>EZMONECASH - Expense Tracker</h1>
+
+    <h2>Add Transaction</h2>
+    <form method="post" action="/tracker">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" step="0.01" required><br>
+
+        <label for="category">Category:</label>
+        <input type="text" id="category" name="category" required><br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description"></textarea><br>
+
+        <label for="transaction_type">Transaction Type:</label>
+        <select id="transaction_type" name="transaction_type">
+            <option value="Expense">Expense</option>
+            <option value="Income">Income</option>
+        </select><br>
+
+        <label for="transaction_date">Transaction Date:</label>
+        <input type="date" id="transaction_date" name="transaction_date" required><br>
+
+        <input type="submit" value="Add Transaction">
+    </form>
+
+    <h2>Your Transactions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.category }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>{{ transaction.transaction_type }}</td>
+                <td>{{ transaction.transaction_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Total Balance: {{ total_balance }}</h2>
+
+    <h2>Expense Summary by Category</h2>
+    <canvas id="expenseChart"></canvas>
+
+    <h2>Monthly Expense Summary</h2>
+    <canvas id="monthlyChart"></canvas>
+
+    <script>
+        // Extracting data from the server-side rendering
+        var expenseSummaryData = {{ expense_summary | tojson | safe }};
+        var monthlySummaryData = {{ monthly_summary | tojson | safe }};
+    
+        // Expense Summary by Category
+        var expenseData = {
+            labels: Object.keys(expenseSummaryData),
+            datasets: [{
+                label: 'Expense Amount',
+                backgroundColor: '#FFA500', // Orange color
+                borderColor: '#FFFFFF',
+                borderWidth: 1,
+                data: Object.values(expenseSummaryData)
+            }]
+        };
+    
+        // Monthly Expense Summary
+        var monthlyData = {
+            labels: Object.keys(monthlySummaryData),
+            datasets: [{
+                label: 'Expense Amount',
+                backgroundColor: '#FFA500', // Orange color
+                borderColor: '#FFFFFF',
+                borderWidth: 1,
+                data: Object.values(monthlySummaryData)
+            }]
+        };
+    
+        var expenseChart = new Chart(document.getElementById('expenseChart').getContext('2d'), {
+            type: 'bar',
+            data: expenseData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                weight: 'bold' // Make Y-axis labels bold
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                weight: 'bold' // Make X-axis labels bold
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                weight: 'bold' // Make legend labels bold
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    
+        var monthlyChart = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+            type: 'bar',
+            data: monthlyData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                weight: 'bold' // Make Y-axis labels bold
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                weight: 'bold' // Make X-axis labels bold
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            font: {
+                                weight: 'bold' // Make legend labels bold
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
